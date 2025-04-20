@@ -18,66 +18,66 @@ def train_model(
     name='exp'
 ):
     """
-    使用YOLOv8训练模型
+    Train a YOLOv8 model
     
-    参数:
-        data: 数据集配置文件路径
-        epochs: 训练轮数
-        batch_size: 批次大小
-        img_size: 图像尺寸
-        resume: 是否从上次训练的检查点恢复
-        device: 设备选择 (例如: cpu, 0, 0,1,2,3)
-        pretrained: 预训练模型路径或模型名称
-        project: 保存结果的项目目录
-        name: 实验名称
+    Parameters:
+        data: Path to dataset configuration file
+        epochs: Number of training epochs
+        batch_size: Batch size
+        img_size: Image size
+        resume: Whether to resume from last checkpoint
+        device: Device selection (e.g., cpu, 0, 0,1,2,3)
+        pretrained: Path or name of pretrained model
+        project: Directory to save results
+        name: Experiment name
     """
     
-    # 检查CUDA是否可用
+    # Check if CUDA is available
     if not device:
-        # 如果未指定device，自动检测
+        # Auto-detect device if not specified
         device = 'cuda:0' if torch.cuda.is_available() else 'cpu'
     
-    print(f"===== 训练设备: {device} =====")
+    print(f"===== Training Device: {device} =====")
     if device.startswith('cuda'):
-        print(f"GPU型号: {torch.cuda.get_device_name(0)}")
-        print(f"可用GPU数量: {torch.cuda.device_count()}")
-        print(f"CUDA版本: {torch.version.cuda}")
+        print(f"GPU Model: {torch.cuda.get_device_name(0)}")
+        print(f"Available GPUs: {torch.cuda.device_count()}")
+        print(f"CUDA Version: {torch.version.cuda}")
     
-    # 确保数据文件存在
+    # Ensure data file exists
     if not os.path.exists(data):
-        raise FileNotFoundError(f"数据配置文件未找到: {data}")
+        raise FileNotFoundError(f"Data configuration file not found: {data}")
     
-    # 创建结果目录
+    # Create results directory
     # os.makedirs(os.path.join(project, name), exist_ok=True)
     
-    # 加载模型
-    print(f"===== 加载模型: {pretrained} =====")
+    # Load model
+    print(f"===== Loading Model: {pretrained} =====")
     try:
         if pretrained.endswith('.pt') and os.path.exists(pretrained):
-            # 加载本地模型文件
+            # Load local model file
             model = YOLO(pretrained)
-            print(f"从本地加载模型: {pretrained}")
+            print(f"Loading model from local file: {pretrained}")
         else:
-            # 加载预训练模型
+            # Load pretrained model
             model = YOLO(pretrained)
-            print(f"加载预训练模型: {pretrained}")
+            print(f"Loading pretrained model: {pretrained}")
     except Exception as e:
-        print(f"加载模型失败: {e}")
-        print("尝试从头开始训练...")
-        model = YOLO('yolov8n.yaml')  # 从配置文件创建新模型
+        print(f"Failed to load model: {e}")
+        print("Attempting to train from scratch...")
+        model = YOLO('yolov8n.yaml')  # Create new model from configuration file
     
-    # 开始训练
-    print(f"===== 开始训练 =====")
-    print(f"数据集配置: {data}")
-    print(f"训练轮数: {epochs}")
-    print(f"批次大小: {batch_size}")
-    print(f"图像尺寸: {img_size}")
+    # Start training
+    print(f"===== Starting Training =====")
+    print(f"Dataset configuration: {data}")
+    print(f"Training epochs: {epochs}")
+    print(f"Batch size: {batch_size}")
+    print(f"Image size: {img_size}")
     
-    # 记录训练开始时间
+    # Record training start time
     start_time = datetime.now()
-    print(f"训练开始时间: {start_time.strftime('%Y-%m-%d %H:%M:%S')}")
+    print(f"Training start time: {start_time.strftime('%Y-%m-%d %H:%M:%S')}")
     
-    # 开始训练
+    # Start training
     model.train(
         data=data,
         epochs=epochs,
@@ -89,29 +89,28 @@ def train_model(
         name=name,
     )
     
-    # 记录训练结束时间
+    # Record training end time
     end_time = datetime.now()
     duration = end_time - start_time
-    print(f"训练结束时间: {end_time.strftime('%Y-%m-%d %H:%M:%S')}")
-    print(f"总训练时间: {duration}")
+    print(f"Training end time: {end_time.strftime('%Y-%m-%d %H:%M:%S')}")
+    print(f"Total training time: {duration}")
     
-    # 保存最终模型
+    # Save final model
     final_model_path = os.path.join(project, name, 'weights', 'best.pt')
-    print(f"最佳模型保存在: {os.path.abspath(final_model_path)}")
+    print(f"Best model saved to: {os.path.abspath(final_model_path)}")
     
     return model, final_model_path
 
 def main():
-    # 获取脚本所在目录
+    # Get script directory and build absolute paths
     script_dir = os.path.dirname(os.path.abspath(__file__))
-    data_yaml = os.path.abspath(os.path.join(script_dir, '..', 'mini_dataset', 'yolo.yaml'))
+    data_yaml = os.path.abspath(os.path.join(script_dir, '..', 'data', 'yolo.yaml'))
 
-    print(f"使用的数据配置文件路径: {data_yaml}")
-
+    print(f"Using data configuration file: {data_yaml}")
     
     train_model(
         data=data_yaml,
-        epochs=10,
+        epochs=1,
         batch_size=16,
         img_size=640,
         resume=False,

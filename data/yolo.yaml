@@ -1,0 +1,6 @@
+train: images/train
+val: images/valid
+test: images/test
+
+nc: 6
+names: ['Onion', 'beef', 'chicken', 'eggs', 'potato', 'radish']

@@ -28,53 +28,53 @@ def detect_objects(
     plot_metrics=True
 ):
     """
-    使用YOLOv8进行目标检测，同时可选择性评估模型性能
+    Object detection using YOLOv8 with optional model evaluation
     
-    参数:
-        weights: 模型权重文件路径
-        source: 要检测的图像或视频路径或目录
-        img_size: 图像尺寸
-        conf_thres: 检测置信度阈值
-        iou_thres: NMS IOU 阈值
-        device: 设备选择 (例如: cpu, 0, 0,1,2,3)
-        save_dir: 保存结果的目录
-        save_txt: 是否保存结果为文本文件
-        show: 是否在屏幕上显示结果
-        classes: 仅检测指定类别
-        evaluate: 是否评估模型性能
-        data: 数据集配置文件路径，用于评估
-        batch_size: 评估时的批次大小
-        plot_metrics: 是否绘制评估指标图表
+    Parameters:
+        weights: Path to model weights file
+        source: Path or directory of images or videos to detect
+        img_size: Image size
+        conf_thres: Detection confidence threshold
+        iou_thres: NMS IOU threshold
+        device: Device selection (e.g., cpu, 0, 0,1,2,3)
+        save_dir: Directory to save results
+        save_txt: Whether to save results as text files
+        show: Whether to display results on screen
+        classes: Only detect specific classes
+        evaluate: Whether to evaluate model performance
+        data: Dataset configuration file path for evaluation
+        batch_size: Batch size for evaluation
+        plot_metrics: Whether to plot evaluation metrics
     
-    返回:
-        results: 检测结果
-        metrics: 评估指标（如果evaluate=True）
+    Returns:
+        results: Detection results
+        metrics: Evaluation metrics (if evaluate=True)
     """
     
-    # 检查CUDA是否可用
+    # Check if CUDA is available
     if not device:
-        # 如果未指定device，自动检测
+        # Auto-detect device if not specified
         device = 'cuda:0' if torch.cuda.is_available() else 'cpu'
     
-    print(f"===== 检测设备: {device} =====")
+    print(f"===== Detection Device: {device} =====")
     if device.startswith('cuda'):
-        print(f"GPU型号: {torch.cuda.get_device_name(0)}")
-        print(f"可用GPU数量: {torch.cuda.device_count()}")
-        print(f"CUDA版本: {torch.version.cuda}")
+        print(f"GPU Model: {torch.cuda.get_device_name(0)}")
+        print(f"Available GPUs: {torch.cuda.device_count()}")
+        print(f"CUDA Version: {torch.version.cuda}")
     
-    # 确保模型文件存在
+    # Ensure model file exists
     if not os.path.exists(weights):
-        raise FileNotFoundError(f"模型文件未找到: {weights}")
+        raise FileNotFoundError(f"Model file not found: {weights}")
     
-    # 确保源文件或目录存在
+    # Ensure source file or directory exists
     if not os.path.exists(source):
-        raise FileNotFoundError(f"源文件或目录未找到: {source}")
+        raise FileNotFoundError(f"Source file or directory not found: {source}")
     
-    # 如果需要评估但未提供数据集配置文件，报错
+    # Raise error if evaluation is enabled but no data configuration file is provided
     if evaluate and not data:
-        raise ValueError("评估模型性能需要提供data参数（数据集配置文件路径）")
+        raise ValueError("Data configuration file path (data parameter) is required for model evaluation")
     
-    # 创建结果目录结构
+    # Create result directory structure
     save_dir = Path(save_dir)
     detect_dir = save_dir / 'detect'
     metrics_dir = save_dir / 'metrics'
@@ -83,21 +83,21 @@ def detect_objects(
     if evaluate:
         os.makedirs(metrics_dir, exist_ok=True)
     
-    # 加载模型
-    print(f"===== 加载模型: {weights} =====")
+    # Load model
+    print(f"===== Loading Model: {weights} =====")
     model = YOLO(weights)
     
-    # 开始检测
-    print(f"===== 开始检测 =====")
-    print(f"检测源: {source}")
-    print(f"图像尺寸: {img_size}")
-    print(f"置信度阈值: {conf_thres}")
-    print(f"IOU阈值: {iou_thres}")
+    # Start detection
+    print(f"===== Starting Detection =====")
+    print(f"Detection Source: {source}")
+    print(f"Image Size: {img_size}")
+    print(f"Confidence Threshold: {conf_thres}")
+    print(f"IOU Threshold: {iou_thres}")
     
-    # 记录检测开始时间
+    # Record detection start time
     start_time = time.time()
     
-    # 进行检测
+    # Perform detection
     results = model.predict(
         source=source,
         imgsz=img_size,
@@ -112,7 +112,7 @@ def detect_objects(
         name=detect_dir.name
     )
     
-    # 显示结果
+    # Display results
     if show:
         for result in results:
             img = result.orig_img
@@ -120,30 +120,30 @@ def detect_objects(
             confs = result.boxes.conf.cpu().numpy()
             clss = result.boxes.cls.cpu().numpy()
             
-            # 在图像上绘制检测结果
+            # Draw detection results on image
             for box, conf, cls_id in zip(boxes, confs, clss):
                 x1, y1, x2, y2 = box.astype(int)
                 label = f"{model.names[int(cls_id)]} {conf:.2f}"
-                color = (0, 255, 0)  # 绿色边框
+                color = (0, 255, 0)  # Green border
                 cv2.rectangle(img, (x1, y1), (x2, y2), color, 2)
                 cv2.putText(img, label, (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
             
-            # 显示图像
+            # Show image
             cv2.imshow("Detection Result", img)
             cv2.waitKey(0)
     
-    # 记录检测结束时间并计算总耗时
+    # Record detection end time and calculate total duration
     end_time = time.time()
     duration = end_time - start_time
-    print(f"检测完成！总耗时: {duration:.2f} 秒")
-    print(f"检测结果保存在: {os.path.abspath(detect_dir)}")
+    print(f"Detection completed! Total time: {duration:.2f} seconds")
+    print(f"Detection results saved to: {os.path.abspath(detect_dir)}")
     
-    # 如果需要，评估模型性能
+    # Evaluate model performance if needed
     metrics_data = None
     figures = None
     
     if evaluate:
-        print("\n===== 开始评估模型性能 =====")
+        print("\n===== Starting Model Evaluation =====")
         metrics_data, figures = evaluate_model(
             model=model,
             data=data,
@@ -157,32 +157,34 @@ def detect_objects(
             verbose=True
         )
         
-        # 生成并显示性能报告文本
+        # Generate and display performance report text
         report_text = format_metrics_report(metrics_data)
         print("\n" + report_text)
         
-        # 将报告保存到文本文件
+        # Save report to text file
         report_path = metrics_dir / "performance_report.txt"
         with open(report_path, 'w') as f:
             f.write(report_text)
         
-        print(f"\n性能评估报告保存在: {os.path.abspath(report_path)}")
-        print(f"性能评估结果保存在: {os.path.abspath(metrics_dir)}")
+        print(f"\nPerformance report saved to: {os.path.abspath(report_path)}")
+        print(f"Evaluation results saved to: {os.path.abspath(metrics_dir)}")
     
-    # 根据是否评估返回不同的结果
+    # Return different results based on whether evaluation was performed
     if evaluate:
         return results, metrics_data, figures
     else:
         return results
 
 def main():
+    # Get script directory and build absolute paths
     script_dir = os.path.dirname(os.path.abspath(__file__))
-    source_dir = os.path.abspath(os.path.join(script_dir, '..', 'mini_dataset', 'images', 'test'))
-    data_yaml = os.path.abspath(os.path.join(script_dir, '..', 'mini_dataset', 'yolo.yaml'))
+    source_dir = os.path.abspath(os.path.join(script_dir, '..', 'data', 'images', 'test'))
+    data_yaml = os.path.abspath(os.path.join(script_dir, '..', 'data', 'yolo.yaml'))
 
-    print(f"使用的数据配置文件路径: {data_yaml}")
-    print(f"使用的源目录路径: {source_dir}")
+    print(f"Using data configuration file: {data_yaml}")
+    print(f"Using source directory: {source_dir}")
 
+    # Call detection function with appropriate parameters
     detect_objects(
         weights='runs/train/exp/weights/best.pt',
         source=source_dir,
@@ -194,7 +196,7 @@ def main():
         save_txt=True,
         show=False,
         classes=None,
-        # 模型评估相关参数
+        # Model evaluation parameters
         evaluate=True,
         data=data_yaml,
         batch_size=16,

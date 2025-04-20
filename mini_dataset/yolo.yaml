@@ -1,8 +1,0 @@
-path: "../mini_dataset" #Path to the directory in which the images and labels are stored
-
-train: images/train
-val: images/valid
-test: images/test
-
-nc: 12
-names: ['Apple', 'Chapathi', 'Chicken Gravy', 'Fries', 'Idli', 'Pizza', 'Rice', 'Soda', 'Tomato', 'Vada', 'banana', 'burger']
